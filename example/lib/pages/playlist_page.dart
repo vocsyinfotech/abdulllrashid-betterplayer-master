@@ -1,8 +1,10 @@
 import 'package:better_player/better_player.dart';
 import 'package:better_player_example/constants.dart';
 import 'package:better_player_example/utils.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:streams_channel3/streams_channel3.dart';
 
 class PlaylistPage extends StatefulWidget {
   @override
@@ -42,6 +44,12 @@ class _PlaylistPageState extends State<PlaylistPage> {
             type: BetterPlayerSubtitlesSourceType.file,
             url: await Utils.getFileUrl(Constants.fileExampleSubtitlesUrl),
           ),
+          notificationConfiguration: BetterPlayerNotificationConfiguration(
+            showNotification: true,
+            title: "Elephant dream",
+            author: "Some author",
+            imageUrl: Constants.catImageUrl,
+          ),
           placeholder: Image.network(
             Constants.catImageUrl,
             fit: BoxFit.cover,
@@ -66,6 +74,38 @@ class _PlaylistPageState extends State<PlaylistPage> {
     );
 
     return _dataSourceList;
+  }
+
+  final StreamsChannel streamsChannel =
+      StreamsChannel('streams_channel_example');
+  Map? liveData;
+  Future<void> getGeneral() async {
+    if (kDebugMode) {
+      print('Start general');
+    }
+    streamsChannel.receiveBroadcastStream('Stream A').listen((data) {
+      if (data != null) {
+        dynamic valueMap;
+
+        print('general${data.toString()}');
+
+        if (data == "next") {
+          _betterPlayerPlaylistController!.setupDataSource(2);
+        } else if (data == "previous") {
+          _betterPlayerPlaylistController!.setupDataSource(0);
+        }
+
+        liveData = valueMap;
+      }
+    });
+  }
+
+  @override
+  void initState() {
+    // TODO: implement initState
+
+    getGeneral();
+    super.initState();
   }
 
   @override
